@@ -222,9 +222,9 @@
     </dl>
 
     <footer class="hint">
-      {#if backArmed}<strong class="error">Press Back again to end your round</strong>
-      {:else if playing}<kbd>{__GRABIUM_WEB__ ? "Esc" : "Back"}</kbd> twice to leave
-      {:else}<kbd>{__GRABIUM_WEB__ ? "Esc" : "Back"}</kbd> machines{/if}
+      {#if backArmed}<strong class="error">Press {__GRABIUM_WEB__ ? "Esc" : "Back"} again to end your round</strong>
+      {:else if playing}<kbd>{__GRABIUM_WEB__ ? "Esc / ⌫" : "Back"}</kbd> twice to leave
+      {:else}<kbd>{__GRABIUM_WEB__ ? "Esc / ⌫" : "Back"}</kbd> machines{/if}
     </footer>
   </aside>
 </main>

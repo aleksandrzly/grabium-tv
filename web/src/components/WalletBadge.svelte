@@ -38,14 +38,18 @@
         <small>{shown === 1 ? "credit" : "credits"}</small>
       </span>
     </div>
-    {#if wallet.freeLeft !== null}
+    {#if wallet.freeLeft !== null && compact}
+      <div class="free" class:empty={wallet.freeLeft === 0}>
+        <span>{wallet.freeLeft}/{wallet.freeLimit} free</span>
+      </div>
+    {:else if wallet.freeLeft !== null}
       <div class="free" class:empty={wallet.freeLeft === 0}>
         <span class="pips" aria-hidden="true">
           {#each Array(wallet.freeLimit) as _, i (i)}
             <i class:on={i < wallet.freeLeft}></i>
           {/each}
         </span>
-        <span>{wallet.freeLeft} free Classic today</span>
+        <span>{wallet.freeLeft}/{wallet.freeLimit} free today</span>
       </div>
     {/if}
   </div>
@@ -59,7 +63,11 @@
 <style>
   .wallet {
     position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
     display: flex;
+    justify-content: space-between;
     align-items: center;
     gap: 14px;
     padding: 12px 16px 12px 12px;
@@ -107,6 +115,7 @@
   .amount small { color: var(--muted); font-size: 22px; }
   .pop { animation: pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1.4); }
   .free {
+    white-space: nowrap;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -132,7 +141,7 @@
   }
   .guest { gap: 14px; padding-right: 24px; font-size: 22px; color: var(--muted); }
   .guest .coin { width: 40px; height: 40px; font-size: 20px; }
-  .compact { padding: 8px 14px 8px 8px; }
+  .compact { width: auto; padding: 8px 14px 8px 8px; }
   .compact .coin { width: 40px; height: 40px; font-size: 20px; }
   .compact .amount strong { font-size: 30px; }
   @keyframes sweep {

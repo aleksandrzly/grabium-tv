@@ -132,4 +132,7 @@ changed for it.
 
 ## License
 
-[MIT](LICENSE)
+Code: [MIT](LICENSE).
+
+The Grabium name and logo (`web/src/assets/grabium-loading-logo.jpeg`) are
+not covered by the MIT license; please don't reuse them for other projects.

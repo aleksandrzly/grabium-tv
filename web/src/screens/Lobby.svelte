@@ -5,6 +5,11 @@
   import { cropStyle, statusOf } from "../lib/format.js";
   import WinsTicker from "../components/WinsTicker.svelte";
   import WalletBadge from "../components/WalletBadge.svelte";
+  import SidePanel from "../components/SidePanel.svelte";
+  import Wordmark from "../components/Wordmark.svelte";
+  // The real brand logo (the Mini App's loading-screen art), cropped to the
+  // "G" by CSS; the wordmark beside it already spells the name.
+  import mark from "../assets/grabium-loading-logo.jpeg";
   import { refreshWallet } from "../lib/wallet.svelte.js";
   import { economy, modeInfo } from "../lib/economy.svelte.js";
   import { exitApp } from "../lib/bridge.js";
@@ -33,6 +38,7 @@
       } catch (err) {
         if (!abort.signal.aborted) error = err.message;
       } finally {
+        if (!loaded) window.dispatchEvent(new Event("grabium-ready"));
         loaded = true;
         tick += 1;
       }
@@ -79,15 +85,16 @@
 <main>
   <header>
     <div class="brand">
-    <h1><span>Grabium</span></h1>
+    <h1 class="logo"><span class="mark"><img src={mark} alt="" /></span><Wordmark height={100} /></h1>
     <p>Real claw machines, live. Pick one and play from your couch.</p>
     {#if !economy.prizesShip}
       <p class="arcade"><strong>Arcade mode</strong> · grabs count on the weekly board, no prizes are shipped</p>
     {/if}
     </div>
-    <WalletBadge />
+    <div class="wallet-slot"><WalletBadge /></div>
   </header>
 
+  <div class="content">
   <section class="cards" aria-label="Machines">
     {#if !loaded}
       <p class="hint">Loading machines…</p>
@@ -123,6 +130,8 @@
       </article>
     {/each}
   </section>
+  <SidePanel />
+  </div>
 
   {#if wins.length}
     <WinsTicker {wins} />
@@ -147,29 +156,55 @@
     display: grid;
     grid-template-rows: auto 1fr auto auto;
     grid-template-columns: minmax(0, 1fr);
-    gap: 28px;
+    gap: 24px;
     height: 1080px;
-    padding: 48px 96px 40px;
+    padding: 40px 96px 36px;
   }
-  header {
+  /* Two columns share one grid: machines on the left, the wallet and the
+     side panel on the right, so the wallet lines up with the panel below. */
+  header, .content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 460px;
+    gap: 48px;
+  }
+  header { align-items: start; }
+  /* Exactly the side column's width, so the pill lines up with the panel. */
+  .wallet-slot { display: flex; min-width: 0; }
+  .content { align-items: center; }
+  .logo {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 40px;
+    align-items: center;
+    gap: 22px;
+    margin: 0 0 6px;
   }
-  header h1 {
-    margin: 0;
-    font-size: 80px;
-    font-weight: 800;
-    letter-spacing: -1.5px;
-    line-height: 1.05;
+  .mark {
+    display: block;
+    width: 108px;
+    height: 108px;
+    overflow: hidden;
+    border-radius: 26px;
+    background: #070717;
+    box-shadow: var(--mark-shadow), inset 0 0 0 1px var(--mark-ring);
+    outline: 4px solid var(--mark-ring);
+    outline-offset: 0;
+    animation: mark-float 5s ease-in-out infinite;
   }
-  header h1 span {
-    background: var(--brand-gradient);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+  /* Show the G only: the art is 392x390 with the GRABIUM caption in the
+     bottom fifth, so scale it up and anchor to the top. */
+  .mark img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 8%;
+    transform: scale(1.32);
+    transform-origin: 50% 22%;
   }
+  @keyframes mark-float {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -6px, 0) rotate(-2deg); }
+  }
+  @media (prefers-reduced-motion: reduce) { .mark { animation: none; } }
   header p { margin: 4px 0 0; color: var(--muted); font-size: 32px; }
   header .arcade {
     display: inline-block;
@@ -190,7 +225,7 @@
   }
   .card {
     position: relative;
-    width: 620px;
+    width: 580px;
     padding: 20px;
     border-radius: var(--radius);
     background: var(--surface);
@@ -229,7 +264,7 @@
   }
   .preview {
     position: relative;
-    height: 340px;
+    height: 320px;
     border-radius: 14px;
     overflow: hidden;
     background: #000;

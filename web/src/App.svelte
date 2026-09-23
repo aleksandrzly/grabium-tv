@@ -4,10 +4,20 @@
   import Login from "./screens/Login.svelte";
   import Ambient from "./components/Ambient.svelte";
   import Settings from "./components/Settings.svelte";
+  import Splash from "./components/Splash.svelte";
   import { applyTheme } from "./lib/settings.svelte.js";
   import { syncMusic } from "./lib/audio.js";
 
   applyTheme();
+
+  // Fit the 1920x1080 stage into the window. On the TV this is 1; in a
+  // browser window it letterboxes instead of cropping the edges.
+  const fitStage = () => {
+    const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    document.documentElement.style.setProperty("--stage-scale", String(scale));
+  };
+  fitStage();
+  window.addEventListener("resize", fitStage);
   syncMusic();
   document.addEventListener("visibilitychange", syncMusic);
 
@@ -28,6 +38,7 @@
 
 <Ambient />
 <Settings />
+<Splash />
 
 {#if screen === "lobby"}
   <Lobby onOpen={open} initialFocusId={machine?.id} />

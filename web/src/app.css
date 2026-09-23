@@ -19,6 +19,16 @@
   --focus: 0 0 0 4px var(--live), 0 0 36px rgba(34, 211, 238, 0.45);
   --panel: #111725;
   --on-accent: #1a1400;
+  /* Wordmark and logo tile (components/Wordmark.svelte, Lobby header). */
+  --wm-a1: #16e0ff; --wm-a2: #ff55ef;
+  --wm-b1: #7b5cff; --wm-b2: #23d9ff;
+  --wm-c1: #ff2bd6; --wm-c2: #7452ff;
+  --wm-side-top: #6a3de0; --wm-side-bottom: #2a1270;
+  --wm-glow: rgba(123, 46, 255, 0.5);
+  --wm-shadow: rgba(0, 0, 0, 0.55);
+  --wm-rim: rgba(255, 255, 255, 0.35);
+  --mark-ring: rgba(255, 255, 255, 0.08);
+  --mark-shadow: 0 0 36px rgba(116, 82, 255, 0.45);
   --bg-gradient: linear-gradient(180deg, #080b17 0%, #0d1125 54%, #070912 100%);
   --grid-a: rgba(34, 211, 238, 0.07);
   --grid-b: rgba(244, 114, 182, 0.05);
@@ -47,6 +57,15 @@
   --focus: 0 0 0 4px #08766c, 0 0 30px rgba(8, 118, 108, 0.3);
   --panel: #fbf8f2;
   --on-accent: #ffffff;
+  --wm-a1: #0e9e8f; --wm-a2: #d9573e;
+  --wm-b1: #2b86a8; --wm-b2: #d19a2a;
+  --wm-c1: #d9573e; --wm-c2: #0e9e8f;
+  --wm-side-top: #e7d9c2; --wm-side-bottom: #c9b393;
+  --wm-glow: rgba(0, 0, 0, 0);
+  --wm-shadow: rgba(60, 40, 20, 0.16);
+  --wm-rim: rgba(255, 255, 255, 0.55);
+  --mark-ring: rgba(43, 36, 56, 0.14);
+  --mark-shadow: 0 10px 24px rgba(60, 40, 20, 0.18);
   --bg-gradient: linear-gradient(180deg, #fbf8f2 0%, #f1ead9 60%, #ebe2cd 100%);
   --grid-a: rgba(8, 118, 108, 0.07);
   --grid-b: rgba(196, 69, 59, 0.06);
@@ -73,6 +92,13 @@
   --brand-gradient: linear-gradient(90deg, #45dda6, #ff7fc2, #ffd45c);
   --focus: 0 0 0 4px #ffd45c, 0 0 36px rgba(255, 127, 194, 0.45);
   --panel: #2b1d3d;
+  --wm-a1: #45dda6; --wm-a2: #ffd45c;
+  --wm-b1: #ff7fc2; --wm-b2: #45dda6;
+  --wm-c1: #ffd45c; --wm-c2: #ff7fc2;
+  --wm-side-top: #b04a8f; --wm-side-bottom: #4a1c47;
+  --wm-glow: rgba(255, 127, 194, 0.35);
+  --wm-shadow: rgba(12, 6, 19, 0.5);
+  --mark-shadow: 4px 5px 0 rgba(12, 6, 19, 0.45), 0 0 26px rgba(255, 127, 194, 0.3);
   --bg-gradient: linear-gradient(180deg, #241532 0%, #1b1226 56%, #24132f 100%);
   --grid-a: rgba(255, 125, 194, 0.07);
   --grid-b: rgba(101, 205, 255, 0.06);
@@ -84,8 +110,8 @@
 * { box-sizing: border-box; }
 html, body {
   margin: 0;
-  width: 1920px;
-  height: 1080px;
+  width: 100%;
+  height: 100%;
   overflow: hidden;
   /* The ambient layer (components/Ambient.svelte) paints the backdrop. */
   background: var(--bg);
@@ -122,4 +148,17 @@ kbd {
   color: var(--text);
   font: inherit;
   text-align: center;
+}
+
+/* The UI is laid out for a 1920x1080 TV. In a smaller or larger browser
+   window the whole stage is scaled to fit and centred (see App.svelte);
+   on the TV the scale is exactly 1. */
+#app {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
 }
