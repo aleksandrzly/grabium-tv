@@ -1,0 +1,30 @@
+# Grabium MCP server (Alexa+), next to the Cloudflare tunnel on the ops host.
+#   docker compose up -d --build
+# Public route: Cloudflare tunnel hostname mcp.freeskillclaw.cc ->
+# http://grabium-mcp:8096 over the tunnel network. No secrets needed: every
+# tool reads the public edge API.
+services:
+  mcp:
+    build: .
+    container_name: grabium-mcp
+    restart: unless-stopped
+    environment:
+      GRABIUM_EDGE_ORIGIN: https://play.freeskillclaw.cc
+      GRABIUM_COACH_ORIGIN: https://coach.freeskillclaw.cc
+      GRABIUM_MCP_PORT: "8096"
+    ports:
+      - "127.0.0.1:8096:8096"
+    networks:
+      - default
+      - tunnel
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 8096), 3).close()"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+networks:
+  tunnel:
+    external: true
+    name: freeclaw-play-tunnel

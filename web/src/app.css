@@ -1,0 +1,125 @@
+:root {
+  color-scheme: dark;
+  /* Palette follows the Mini App (frontend/src/App.css, Grabium Dark skin). */
+  --bg: #07090f;
+  --surface: rgba(17, 22, 31, 0.82);
+  --surface-2: rgba(255, 255, 255, 0.06);
+  --line: rgba(148, 163, 184, 0.18);
+  --text: #f8fafc;
+  --muted: #a8b3c4;
+  --accent: #facc15;
+  --live: #22d3ee;
+  --play: #f59e0b;
+  --magenta: #ff00c6;
+  --ok: #34d399;
+  --busy: #fb923c;
+  --off: #94a3b8;
+  --radius: 22px;
+  --brand-gradient: linear-gradient(90deg, #00e0ff, #ff00c6);
+  --focus: 0 0 0 4px var(--live), 0 0 36px rgba(34, 211, 238, 0.45);
+  --panel: #111725;
+  --on-accent: #1a1400;
+  --bg-gradient: linear-gradient(180deg, #080b17 0%, #0d1125 54%, #070912 100%);
+  --grid-a: rgba(34, 211, 238, 0.07);
+  --grid-b: rgba(244, 114, 182, 0.05);
+  --grid-dot: rgba(251, 191, 36, 0.22);
+  --glow-1: rgba(255, 0, 198, 0.3);
+  --glow-2: rgba(0, 224, 255, 0.24);
+  --glow-3: rgba(245, 158, 11, 0.16);
+}
+
+/* Parlor Light: warm paper, teal and brick accents (Mini App skins.css). */
+:root[data-theme="parlor"] {
+  color-scheme: light;
+  --bg: #f4efe4;
+  --surface: rgba(255, 255, 255, 0.9);
+  --surface-2: rgba(43, 36, 56, 0.06);
+  --line: rgba(43, 36, 56, 0.12);
+  --text: #2b2438;
+  --muted: #62596f;
+  --accent: #8a6410;
+  --live: #08766c;
+  --play: #c4453b;
+  --ok: #0f7a4f;
+  --busy: #b54708;
+  --off: #7c7485;
+  --brand-gradient: linear-gradient(90deg, #08766c, #c4453b);
+  --focus: 0 0 0 4px #08766c, 0 0 30px rgba(8, 118, 108, 0.3);
+  --panel: #fbf8f2;
+  --on-accent: #ffffff;
+  --bg-gradient: linear-gradient(180deg, #fbf8f2 0%, #f1ead9 60%, #ebe2cd 100%);
+  --grid-a: rgba(8, 118, 108, 0.07);
+  --grid-b: rgba(196, 69, 59, 0.06);
+  --grid-dot: rgba(138, 100, 16, 0.2);
+  --glow-1: rgba(196, 69, 59, 0.12);
+  --glow-2: rgba(8, 118, 108, 0.12);
+  --glow-3: rgba(138, 100, 16, 0.1);
+}
+
+/* Candy Toy: plum base, mint / coral / sunny accents (Mini App skins.css). */
+:root[data-theme="candy"] {
+  --bg: #1b1226;
+  --surface: rgba(52, 34, 72, 0.92);
+  --surface-2: rgba(244, 114, 182, 0.12);
+  --line: rgba(255, 152, 207, 0.38);
+  --text: #fff8fc;
+  --muted: #d7b8df;
+  --accent: #ffd45c;
+  --live: #45dda6;
+  --play: #ff784e;
+  --ok: #45dda6;
+  --busy: #ff784e;
+  --off: #b9a3c4;
+  --brand-gradient: linear-gradient(90deg, #45dda6, #ff7fc2, #ffd45c);
+  --focus: 0 0 0 4px #ffd45c, 0 0 36px rgba(255, 127, 194, 0.45);
+  --panel: #2b1d3d;
+  --bg-gradient: linear-gradient(180deg, #241532 0%, #1b1226 56%, #24132f 100%);
+  --grid-a: rgba(255, 125, 194, 0.07);
+  --grid-b: rgba(101, 205, 255, 0.06);
+  --grid-dot: rgba(255, 212, 92, 0.24);
+  --glow-1: rgba(255, 127, 194, 0.28);
+  --glow-2: rgba(69, 221, 166, 0.2);
+  --glow-3: rgba(255, 212, 92, 0.16);
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  /* The ambient layer (components/Ambient.svelte) paints the backdrop. */
+  background: var(--bg);
+  color: var(--text);
+  font: 28px/1.3 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  font-size: 24px;
+}
+.pill::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.tone-ok { color: var(--ok); }
+.tone-busy { color: var(--busy); }
+.tone-wait { color: var(--accent); }
+.tone-off { color: var(--off); }
+.hint { color: var(--muted); font-size: 24px; }
+kbd {
+  display: inline-block;
+  min-width: 44px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+}

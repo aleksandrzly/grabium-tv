@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1920,height=1080">
+<title>Grabium TV probe</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0d12; color: #e8ebf2; font: 22px/1.35 system-ui, sans-serif; }
+  main { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 32px; }
+  h1 { grid-column: 1 / -1; margin: 0; font-size: 36px; }
+  section { background: #151923; border-radius: 12px; padding: 20px; }
+  h2 { margin: 0 0 12px; font-size: 24px; color: #9fb3ff; }
+  video { width: 100%; height: 330px; object-fit: contain; background: #000; border-radius: 8px; }
+  ul { margin: 0; padding-left: 20px; }
+  .ok { color: #6ee7a1; } .bad { color: #ff7a7a; } .dim { color: #8a93a8; }
+  #keys { font-family: ui-monospace, monospace; font-size: 18px; max-height: 300px; overflow: hidden; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Grabium TV: Vega WebView probe (B0)</h1>
+  <section>
+    <h2>Capabilities</h2>
+    <ul id="caps"></ul>
+  </section>
+  <section>
+    <h2>Remote keys (hold an arrow 3s, then press Back)</h2>
+    <div id="keys" class="dim">waiting…</div>
+  </section>
+  <section>
+    <h2>Live WHEP: machine-02 (STUN only)</h2>
+    <video id="rtc" autoplay muted playsinline></video>
+    <div id="rtcStatus" class="dim">starting…</div>
+  </section>
+  <section>
+    <h2>Live HLS: machine-01</h2>
+    <video id="hls" autoplay muted playsinline></video>
+    <div id="hlsStatus" class="dim">starting…</div>
+  </section>
+</main>
+<script>
+  // Everything is reported both on screen and to console so it shows up in
+  // `vega` device logs; the probe answers "WHEP or HLS" before we build UI.
+  function report(el, text, ok) {
+    el.textContent = text;
+    el.className = ok === undefined ? 'dim' : ok ? 'ok' : 'bad';
+    console.info('[probe] ' + el.id + ': ' + text);
+  }
+  function cap(name, value) {
+    const li = document.createElement('li');
+    li.className = value ? 'ok' : 'bad';
+    li.textContent = name + ': ' + value;
+    document.getElementById('caps').appendChild(li);
+    console.info('[probe] cap ' + name + ': ' + value);
+  }
+
+  const probeVideo = document.createElement('video');
+  cap('userAgent', navigator.userAgent);
+  cap('RTCPeerConnection', typeof RTCPeerConnection === 'function');
+  cap('canvas.captureStream', typeof HTMLCanvasElement.prototype.captureStream === 'function');
+  cap('MediaSource', typeof MediaSource === 'function');
+  cap('MSE h264', typeof MediaSource === 'function' && MediaSource.isTypeSupported('video/mp4; codecs="avc1.42E01E"'));
+  cap('native HLS', probeVideo.canPlayType('application/vnd.apple.mpegurl') || false);
+  cap('WebSocket', typeof WebSocket === 'function');
+  cap('screen', screen.width + 'x' + screen.height + ' @' + devicePixelRatio);
+
+  const keysEl = document.getElementById('keys');
+  const keyLines = [];
+  function logKey(type, e) {
+    keyLines.unshift(type + ' key=' + e.key + ' code=' + e.code + ' keyCode=' + e.keyCode + (e.repeat ? ' (repeat)' : ''));
+    keyLines.length = Math.min(keyLines.length, 10);
+    keysEl.className = 'ok';
+    keysEl.innerHTML = keyLines.join('<br>');
+    console.info('[probe] ' + keyLines[0]);
+  }
+  window.addEventListener('keydown', (e) => logKey('down', e));
+  window.addEventListener('keyup', (e) => logKey('up', e));
+
+  const ORIGIN = 'https://play.freeskillclaw.cc';
+  // Same shape as frontend/src/lib/streamClient.js: recvonly offer, wait for
+  // ICE gathering, POST SDP to WHEP, apply the answer. No TURN here because
+  // TURN credentials need a signed-in user.
+  async function liveWhep() {
+    const status = document.getElementById('rtcStatus');
+    const t0 = performance.now();
+    const pc = new RTCPeerConnection({ iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] });
+    pc.addTransceiver('video', { direction: 'recvonly' });
+    const video = document.getElementById('rtc');
+    pc.ontrack = (e) => { video.srcObject = e.streams[0]; video.play().catch(() => {}); };
+    await pc.setLocalDescription(await pc.createOffer());
+    await new Promise((resolve) => {
+      if (pc.iceGatheringState === 'complete') return resolve();
+      pc.addEventListener('icegatheringstatechange', () => pc.iceGatheringState === 'complete' && resolve());
+      setTimeout(resolve, 3000);
+    });
+    const res = await fetch(ORIGIN + '/cam/machine-02/whep', {
+      method: 'POST', headers: { 'Content-Type': 'application/sdp' }, body: pc.localDescription.sdp, cache: 'no-store'
+    });
+    if (!res.ok) return report(status, 'WHEP HTTP ' + res.status, false);
+    await pc.setRemoteDescription({ type: 'answer', sdp: await res.text() });
+    let firstFrameMs = null;
+    setInterval(async () => {
+      let frames = 0, jitter = 0, w = 0, h = 0, pair = '';
+      const stats = await pc.getStats();
+      stats.forEach((r) => {
+        if (r.type === 'inbound-rtp' && r.kind === 'video') {
+          frames = r.framesDecoded || 0; w = r.frameWidth || 0; h = r.frameHeight || 0;
+          jitter = r.jitterBufferEmittedCount ? Math.round(1000 * r.jitterBufferDelay / r.jitterBufferEmittedCount) : 0;
+        }
+        if (r.type === 'candidate-pair' && r.nominated && r.state === 'succeeded') {
+          const l = stats.get(r.localCandidateId), rm = stats.get(r.remoteCandidateId);
+          pair = (l && l.candidateType) + '→' + (rm && rm.candidateType);
+        }
+      });
+      if (frames > 0 && firstFrameMs === null) firstFrameMs = Math.round(performance.now() - t0);
+      report(status, 'state=' + pc.connectionState + ' frames=' + frames + ' ' + w + 'x' + h +
+        ' jitterBuf=' + jitter + 'ms firstFrame=' + firstFrameMs + 'ms ice=' + pair, frames > 0);
+    }, 1000);
+  }
+  liveWhep().catch((err) => report(document.getElementById('rtcStatus'), err.name + ': ' + err.message, false));
+
+  const hls = document.getElementById('hls');
+  const hlsStatus = document.getElementById('hlsStatus');
+  hls.src = ORIGIN + '/cam/machine-01/index.m3u8';
+  hls.addEventListener('playing', () => report(hlsStatus, 'native HLS playing', true));
+  hls.addEventListener('error', () => report(hlsStatus, 'native HLS error code=' + (hls.error && hls.error.code), false));
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+import * as React from 'react';
+import {render} from '@testing-library/react-native';
+import {App} from '../src/App';
+
+jest.mock('@amazon-devices/webview', () => ({
+  WebView: 'WebView',
+}));
+
+jest.mock('@amazon-devices/react-native-kepler', () => ({
+  usePreventHideSplashScreen: jest.fn(),
+  useHideSplashScreenCallback: jest.fn(() => jest.fn()),
+  // The app replays the remote's Menu and Back keys into the WebView.
+  UserInputEventName: {Menu: 'MENU', Back: 'BACK'},
+  useAddUserInputListenerCallback: jest.fn(() => jest.fn(() => ({remove: jest.fn()}))),
+  StyleSheet: {create: (styles: unknown) => styles},
+  View: 'View',
+  BackHandler: {addEventListener: jest.fn(() => ({remove: jest.fn()})), exitApp: jest.fn()},
+}));
+
+describe('App', () => {
+  it('renders without crashing', () => {
+    const {toJSON} = render(<App />);
+    expect(toJSON()).toBeTruthy();
+  });
+});

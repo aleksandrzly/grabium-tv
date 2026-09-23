@@ -1,0 +1,28 @@
+# Grabium TV coach, next to the Cloudflare tunnel on the ops host.
+#   cp .env.example .env   # fill in the AWS values on the server only
+#   docker compose up -d --build
+services:
+  coach:
+    build: .
+    container_name: grabium-coach
+    restart: unless-stopped
+    env_file: .env
+    # Loopback only, for checks from the host (8090 is taken there).
+    # The public route is the Cloudflare tunnel hostname, which reaches
+    # this container as http://grabium-coach:8090 over the tunnel network.
+    ports:
+      - "127.0.0.1:8095:8090"
+    networks:
+      - default
+      - tunnel
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8090/health', timeout=4).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+networks:
+  tunnel:
+    external: true
+    name: freeclaw-play-tunnel
