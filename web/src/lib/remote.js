@@ -17,8 +17,14 @@ const KEYMAP = {
   // yet, so the common spellings are all accepted.
   ContextMenu: "menu",
   Menu: "menu",
-  MediaContextMenu: "menu"
+  MediaContextMenu: "menu",
+  // Desktop browser build: a keyboard has no Menu button.
+  m: "menu",
+  M: "menu"
 };
+
+// Keys typed into a text field belong to the field, not to the remote.
+const typing = (event) => /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || "");
 
 // Keys a listener consumed stay consumed until they are released. Without
 // this, the remote's auto-repeat keydowns for the same press land on the
@@ -45,6 +51,7 @@ function actionOf(event) {
 export function listenRemote(onPress, onRelease, { capture = false } = {}) {
   const held = new Set();
   const down = (event) => {
+    if (typing(event)) return;
     const action = actionOf(event);
     if (!action) return;
     event.preventDefault();
@@ -57,6 +64,7 @@ export function listenRemote(onPress, onRelease, { capture = false } = {}) {
     }
   };
   const up = (event) => {
+    if (typing(event)) return;
     const action = actionOf(event);
     if (!action) return;
     event.preventDefault();

@@ -8,6 +8,8 @@
   import { actionCopy, refusalText } from "../lib/playCopy.js";
   import { economy, modeInfo } from "../lib/economy.svelte.js";
   import { coachHint, coachRecap } from "../lib/coach.js";
+  import WalletBadge from "../components/WalletBadge.svelte";
+  import { refreshWallet } from "../lib/wallet.svelte.js";
 
   let { initial, onBack, onSignIn } = $props();
 
@@ -50,6 +52,13 @@
       game.close();
     };
   });
+
+  // The balance changes when a round starts (spent) and ends; refresh then.
+  $effect(() => {
+    const status = g.status;
+    if (status === "controlling" || status === "session_ended") refreshWallet();
+  });
+  refreshWallet();
 
   // AI coach: a tip when this player's round starts, a recap when it ends.
   // Keyed on the transition so a status resend does not ask twice.
@@ -151,7 +160,10 @@
   </section>
 
   <aside>
-    <span class="live">LIVE{#if streamState === "hls"} · HLS{/if}</span>
+    <div class="top">
+      <span class="live">LIVE{#if streamState === "hls"} · HLS{/if}</span>
+      <WalletBadge compact />
+    </div>
     <h1>{machine.name}</h1>
     <span class="pill tone-{status.tone}">{status.label}</span>
 
@@ -211,8 +223,8 @@
 
     <footer class="hint">
       {#if backArmed}<strong class="error">Press Back again to end your round</strong>
-      {:else if playing}<kbd>Back</kbd> twice to leave
-      {:else}<kbd>Back</kbd> machines{/if}
+      {:else if playing}<kbd>{__GRABIUM_WEB__ ? "Esc" : "Back"}</kbd> twice to leave
+      {:else}<kbd>{__GRABIUM_WEB__ ? "Esc" : "Back"}</kbd> machines{/if}
     </footer>
   </aside>
 </main>
@@ -246,6 +258,12 @@
     gap: 24px;
     padding: 64px 56px 48px;
     background: var(--surface);
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 56px;
   }
   .live {
     align-self: flex-start;

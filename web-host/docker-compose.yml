@@ -1,0 +1,24 @@
+# Grabium TV in a desktop browser, next to the Cloudflare tunnel on the ops host.
+#   (cd ../web && npm run build:web) && docker compose up -d --build
+# Public route: tunnel hostname tv.freeskillclaw.cc -> http://grabium-tv-web:8080
+services:
+  tv-web:
+    build: .
+    container_name: grabium-tv-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8097:8080"
+    networks:
+      - default
+      - tunnel
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/health >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      start_period: 5s
+      retries: 3
+
+networks:
+  tunnel:
+    external: true
+    name: freeclaw-play-tunnel

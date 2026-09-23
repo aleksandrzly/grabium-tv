@@ -8,7 +8,10 @@ const { version } = JSON.parse(readFileSync(new URL("./package.json", import.met
 // The Vega WebView loads the app from file:///pkg/assets/index.html, and
 // Chromium refuses <script type="module" src> over file://. Inlining the whole
 // bundle into one HTML file sidesteps that without a local web server.
-const ORIGIN = process.env.GRABIUM_ORIGIN || "https://play.freeskillclaw.cc";
+// GRABIUM_TARGET=web builds the browser version (FireTv/web-host), which is
+// served next to a same-origin proxy of the edge, so every URL is relative.
+const WEB_TARGET = process.env.GRABIUM_TARGET === "web";
+const ORIGIN = WEB_TARGET ? "" : process.env.GRABIUM_ORIGIN || "https://play.freeskillclaw.cc";
 // Must match COACH_ORIGIN in FireTv/vega/src/bridge.ts (the bridge allowlist).
 const COACH_ORIGIN = process.env.GRABIUM_COACH_ORIGIN || "https://coach.freeskillclaw.cc";
 // Off until the coach runs on real Bedrock: canned lines must not be shown
@@ -19,14 +22,15 @@ export default defineConfig({
   plugins: [svelte(), viteSingleFile()],
   define: {
     __GRABIUM_ORIGIN__: JSON.stringify(ORIGIN),
+    __GRABIUM_WEB__: JSON.stringify(WEB_TARGET),
     __GRABIUM_COACH_ORIGIN__: JSON.stringify(COACH_ORIGIN),
     __GRABIUM_COACH_ENABLED__: JSON.stringify(COACH_ENABLED),
     __APP_VERSION__: JSON.stringify(version),
     __APP_BUILT__: JSON.stringify(new Date().toISOString().slice(0, 10))
   },
   build: {
-    outDir: "../vega/assets",
-    emptyOutDir: false,
+    outDir: WEB_TARGET ? "../web-host/dist" : "../vega/assets",
+    emptyOutDir: WEB_TARGET,
     target: "chrome120"
   },
   server: {

@@ -34,14 +34,31 @@ export function startStream(video, { whepUrl, hlsUrl, iceServers = STUN, onState
   let timeout = null;
   const abort = new AbortController();
 
-  const fallbackToHls = (reason) => {
+  let hls = null;
+  const fallbackToHls = async (reason) => {
     if (stopped || video.dataset.mode === "hls") return;
     closePeer();
     video.dataset.mode = "hls";
     video.srcObject = null;
-    video.src = hlsUrl;
-    video.play().catch(() => {});
     onState("hls", reason);
+    // The TV WebView plays HLS natively; desktop Chrome and Firefox do not,
+    // so the browser build brings hls.js. The TV build drops this branch.
+    if (__GRABIUM_WEB__ && !video.canPlayType("application/vnd.apple.mpegurl")) {
+      const { default: Hls } = await import("hls.js/light");
+      if (stopped || !Hls.isSupported()) {
+        if (!stopped) onState("error", "no hls support");
+        return;
+      }
+      hls = new Hls({ lowLatencyMode: true });
+      hls.on(Hls.Events.ERROR, (_event, data) => {
+        if (data.fatal) onState("error", `hls ${data.type}`);
+      });
+      hls.loadSource(hlsUrl);
+      hls.attachMedia(video);
+    } else {
+      video.src = hlsUrl;
+    }
+    video.play().catch(() => {});
   };
 
   const closePeer = () => {
@@ -92,7 +109,8 @@ export function startStream(video, { whepUrl, hlsUrl, iceServers = STUN, onState
     });
     if (!response.ok) throw new Error(`WHEP ${response.status}`);
     const location = response.headers.get("Location");
-    if (location) sessionUrl = new URL(location, whepUrl).toString();
+    // whepUrl is relative in the browser build, so resolve it against the page.
+    if (location) sessionUrl = new URL(location, new URL(whepUrl, window.location.href)).toString();
     const answer = await response.text();
     if (peer !== pc) return;
     await peer.setRemoteDescription({ type: "answer", sdp: answer });
@@ -110,6 +128,7 @@ export function startStream(video, { whepUrl, hlsUrl, iceServers = STUN, onState
     stopped = true;
     abort.abort();
     closePeer();
+    hls?.destroy();
     video.removeAttribute("src");
     video.srcObject = null;
     video.load();

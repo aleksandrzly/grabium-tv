@@ -13,7 +13,21 @@ Alexa+ MCP and Open Source extras).
 | Vega OS shell | [`vega/`](vega) | React Native app from Amazon's `vegaWebview` template: WebView, HTTP bridge, remote key routing |
 | AI coach | [`ai-coach/`](ai-coach) | Claude on **Amazon Bedrock** looks at the camera frame and gives a one-line aiming tip and a round recap. Off by default (see below) |
 | Alexa+ MCP server | [`mcp-server/`](mcp-server) | Read-only MCP server (Streamable HTTP, protocol 2025-11-25+): machine status, recent grabs, weekly board, how to play |
+| Browser host | [`web-host/`](web-host) | nginx: serves the browser build and proxies the edge on the same origin |
 | Notes | [`docs/`](docs) | [Friction log](docs/friction-log.md), device probe results, the probe page |
+
+## Try it
+
+- **In a browser:** https://tv.freeskillclaw.cc. It is the same TV UI:
+  arrows move, Enter is OK, Esc is Back and M opens settings.
+- **On a Fire TV / Vega device or the Vega Virtual Device:** download the
+  `.vpkg` from [Releases](../../releases) (`aarch64` for the Virtual Device on
+  Apple Silicon, `armv7` for Fire TV sticks, `x86_64` for the Virtual Device
+  on Intel) and run `vega run-app grabiumtv_<arch>.vpkg`.
+- **To play:** open a machine, press OK and sign in with any email; the code
+  arrives by email. New accounts get **10 free credits** (one round each)
+  plus free daily Classic plays. The machines are real cabinets, so a round
+  moves a real claw you watch live.
 
 ## How it fits together
 

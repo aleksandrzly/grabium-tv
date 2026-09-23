@@ -1,4 +1,6 @@
 // Player-facing copy for the TV action panel, keyed by edge status / reason.
+// The browser build is played with a keyboard, so key names follow it.
+const OK = __GRABIUM_WEB__ ? "Enter" : "OK";
 const REFUSALS = {
   insufficient_credits: "Out of plays for now.",
   guest_play_disabled: "Playing from the TV is switched off on this machine.",
@@ -19,13 +21,13 @@ export function actionCopy(s, econ = {}) {
     case "connecting":
       return { title: "Connecting…", keys: [] };
     case "ready":
-      return { title: "Ready to play", keys: [s.signedIn ? "OK|Play" : "OK|Sign in to play"] };
+      return { title: "Ready to play", keys: [s.signedIn ? `${OK}|Play` : `${OK}|Sign in to play`] };
     case "not_ready":
     case "returning_home":
       return { title: "Getting the claw ready…", keys: [] };
     case "busy":
       return s.canQueue
-        ? { title: "Someone is playing", keys: ["OK|Get in line"] }
+        ? { title: "Someone is playing", keys: [`${OK}|Get in line`] }
         : { title: "Someone is playing", keys: [] };
     case "queued":
       return {
@@ -33,20 +35,20 @@ export function actionCopy(s, econ = {}) {
         keys: ["Back|Leave the line"]
       };
     case "turn_invited":
-      return { title: "Your turn!", keys: ["OK|Start now"] };
+      return { title: "Your turn!", keys: [`${OK}|Start now`] };
     case "controlling":
       if (s.phase === "lifting") return { title: "Grabbing…", keys: [] };
-      if (s.phase === "select") return { title: "Pick the drop spot", keys: ["◀▲▼▶|Move", "OK|Release"] };
+      if (s.phase === "select") return { title: "Pick the drop spot", keys: ["◀▲▼▶|Move", `${OK}|Release`] };
       if (s.dropSent) return { title: "Dropping…", keys: [] };
-      return { title: "Your round", keys: ["◀▲▼▶|Hold to move", "OK|Drop"] };
+      return { title: "Your round", keys: ["◀▲▼▶|Hold to move", `${OK}|Drop`] };
     case "session_ended":
       if (s.result === "WIN") {
         // Arcade wording mirrors the Mini App (resultWinTitleArcade/MsgArcade).
         return econ.prizesShip
-          ? { title: "You won!", keys: ["OK|Play again"] }
-          : { title: "Great grab!", subtitle: "It counts on the weekly board.", keys: ["OK|Play again"] };
+          ? { title: "You won!", keys: [`${OK}|Play again`] }
+          : { title: "Great grab!", subtitle: "It counts on the weekly board.", keys: [`${OK}|Play again`] };
       }
-      return { title: econ.prizesShip ? "No prize this time" : "So close!", keys: ["OK|Play again"] };
+      return { title: econ.prizesShip ? "No prize this time" : "So close!", keys: [`${OK}|Play again`] };
     case "maintenance":
       return { title: "Machine is taking a break", keys: [] };
     case "unauthorized":

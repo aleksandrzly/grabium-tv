@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:web": "GRABIUM_TARGET=web vite build",
     "preview": "vite preview",
     "lint": "eslint src/",
     "vega": "vite build && cd ../vega && npm run build:debug && vega run-app build/aarch64-debug/grabiumtv_aarch64.vpkg"
@@ -21,6 +22,7 @@
     "vite-plugin-singlefile": "^2.3.0"
   },
   "dependencies": {
+    "hls.js": "^1.7.3",
     "uqr": "^0.1.3"
   }
 }

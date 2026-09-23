@@ -4,6 +4,8 @@
   import { listenRemote } from "../lib/remote.js";
   import { cropStyle, statusOf } from "../lib/format.js";
   import WinsTicker from "../components/WinsTicker.svelte";
+  import WalletBadge from "../components/WalletBadge.svelte";
+  import { refreshWallet } from "../lib/wallet.svelte.js";
   import { economy, modeInfo } from "../lib/economy.svelte.js";
   import { exitApp } from "../lib/bridge.js";
   import { account } from "../lib/platform.svelte.js";
@@ -44,12 +46,15 @@
     }
     refresh();
     refreshWins();
+    refreshWallet();
+    const walletPoll = setInterval(refreshWallet, 30000);
     const poll = setInterval(refresh, LOBBY_POLL_MS);
     const winsPoll = setInterval(refreshWins, 30000);
     return () => {
       abort.abort();
       clearInterval(poll);
       clearInterval(winsPoll);
+      clearInterval(walletPoll);
     };
   });
 
@@ -73,11 +78,14 @@
 
 <main>
   <header>
+    <div class="brand">
     <h1><span>Grabium</span></h1>
     <p>Real claw machines, live. Pick one and play from your couch.</p>
     {#if !economy.prizesShip}
       <p class="arcade"><strong>Arcade mode</strong> · grabs count on the weekly board, no prizes are shipped</p>
     {/if}
+    </div>
+    <WalletBadge />
   </header>
 
   <section class="cards" aria-label="Machines">
@@ -123,7 +131,11 @@
   {/if}
 
   <footer class="hint">
-    <span><kbd>◀</kbd> <kbd>▶</kbd> choose &nbsp; <kbd>OK</kbd> open &nbsp; <kbd>≡</kbd> settings &nbsp; <kbd>Back</kbd> exit</span>
+    {#if __GRABIUM_WEB__}
+      <span><kbd>◀</kbd> <kbd>▶</kbd> choose &nbsp; <kbd>Enter</kbd> open &nbsp; <kbd>M</kbd> settings</span>
+    {:else}
+      <span><kbd>◀</kbd> <kbd>▶</kbd> choose &nbsp; <kbd>OK</kbd> open &nbsp; <kbd>≡</kbd> settings &nbsp; <kbd>Back</kbd> exit</span>
+    {/if}
     {#if account.token}
       <span class="account">Signed in as <strong>{account.email || "player"}</strong></span>
     {/if}
@@ -138,6 +150,12 @@
     gap: 28px;
     height: 1080px;
     padding: 48px 96px 40px;
+  }
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 40px;
   }
   header h1 {
     margin: 0;
