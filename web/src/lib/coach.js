@@ -6,6 +6,7 @@ import { request } from "./bridge.js";
 const COACH = __GRABIUM_COACH_ORIGIN__;
 
 async function ask(path, body) {
+  if (!__GRABIUM_COACH_ENABLED__) return "";
   try {
     const reply = await request(`${COACH}${path}`, {
       method: "POST",

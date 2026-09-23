@@ -79,6 +79,6 @@ async def test_coach_tip_falls_back_when_coach_is_down(edge, monkeypatch):
 async def test_every_tool_is_read_only():
     tools = await server.mcp.list_tools()
     assert {t.name for t in tools} == {
-        "list_machines", "machine_status", "recent_grabs", "weekly_board", "how_to_play", "coach_tip"
-    }
+        "list_machines", "machine_status", "recent_grabs", "weekly_board", "how_to_play"
+    }, "coach_tip must stay hidden unless GRABIUM_MCP_COACH=1"
     assert all(t.annotations and t.annotations.read_only_hint for t in tools)

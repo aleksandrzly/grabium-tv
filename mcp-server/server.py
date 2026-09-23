@@ -1,7 +1,8 @@
 """Grabium MCP server for Alexa+: live claw machine status by voice.
 
 Read-only on purpose. It answers "which machine is free", "what is on
-Basket Ball", "who is winning this week" and asks the AI coach for a tip,
+Basket Ball" and "who is winning this week" (plus an AI coach tip when
+GRABIUM_MCP_COACH=1 and the coach runs on Bedrock),
 but it cannot start a round or move a claw: controlling a real cabinet
 needs a signed-in player on a screen that shows the live camera.
 
@@ -39,6 +40,9 @@ EDGE = os.getenv("GRABIUM_EDGE_ORIGIN", "https://play.freeskillclaw.cc").rstrip(
 COACH = os.getenv("GRABIUM_COACH_ORIGIN", "https://coach.freeskillclaw.cc").rstrip("/")
 PORT = _env_int("GRABIUM_MCP_PORT", 8096, 1, 65535)
 HTTP_TIMEOUT = _env_int("GRABIUM_MCP_HTTP_TIMEOUT", 8, 1, 30)
+# The coach_tip tool is only offered while the coach runs on real Bedrock;
+# otherwise Alexa would present a canned line as an AI tip.
+COACH_TOOL = os.getenv("GRABIUM_MCP_COACH", "0") == "1"
 
 READ_ONLY = ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True)
 
@@ -61,7 +65,7 @@ mcp = MCPServer(
     description="Live status of Grabium's real, remotely played claw machines.",
     instructions=(
         "Use these tools to tell people about Grabium's live claw machines: which one is free, "
-        "what each machine is, recent grabs, the weekly board, and an AI coach tip. Each result "
+        "what each machine is, recent grabs and the weekly board. Each result "
         "has a 'say' field that is ready to speak. Grabium runs as an arcade: do not promise "
         "physical prizes. Playing happens on the Grabium TV app, on the web or in Telegram, "
         "not by voice."
@@ -223,7 +227,6 @@ async def how_to_play(mode: str = "") -> dict[str, Any]:
     }
 
 
-@mcp.tool(title="Coach tip", annotations=READ_ONLY)
 async def coach_tip(machine: str) -> dict[str, Any]:
     """Ask Grabium's AI coach (Claude on Amazon Bedrock, looking at the live camera) for an aiming tip on one machine.
 
@@ -243,6 +246,10 @@ async def coach_tip(machine: str) -> dict[str, Any]:
     if not line:
         return {"say": f"The coach is taking a break. On {found.get('name')}, line up over one item before you drop."}
     return {"say": f"Coach tip for {found.get('name')}: {line}", "found": True}
+
+
+if COACH_TOOL:
+    mcp.tool(title="Coach tip", annotations=READ_ONLY)(coach_tip)
 
 
 def main() -> None:

@@ -4,15 +4,15 @@ Play a **real claw machine** from your couch. Grabium streams live cabinets
 over WebRTC, and this app turns a Fire TV into the controller: the D-pad
 steers the claw and OK drops it.
 
-Built for the Amazon Developer Hackathon 2026 (Fire TV track, plus the AWS
-Builder and Alexa+ MCP extras).
+Built for the Amazon Developer Hackathon 2026 (Fire TV track, plus the
+Alexa+ MCP and Open Source extras).
 
 | Part | Folder | What it is |
 | :--- | :--- | :--- |
 | TV app | [`web/`](web) | Svelte 5 UI for a 10-foot screen: lobby, live stream, remote play, sign-in, settings |
 | Vega OS shell | [`vega/`](vega) | React Native app from Amazon's `vegaWebview` template: WebView, HTTP bridge, remote key routing |
-| AI coach | [`ai-coach/`](ai-coach) | Claude on **Amazon Bedrock** looks at the camera frame and gives a one-line aiming tip and a round recap |
-| Alexa+ MCP server | [`mcp-server/`](mcp-server) | Read-only MCP server (Streamable HTTP, protocol 2025-11-25+): machine status, recent grabs, weekly board, coach tips by voice |
+| AI coach | [`ai-coach/`](ai-coach) | Claude on **Amazon Bedrock** looks at the camera frame and gives a one-line aiming tip and a round recap. Off by default (see below) |
+| Alexa+ MCP server | [`mcp-server/`](mcp-server) | Read-only MCP server (Streamable HTTP, protocol 2025-11-25+): machine status, recent grabs, weekly board, how to play |
 | Notes | [`docs/`](docs) | [Friction log](docs/friction-log.md), device probe results, the probe page |
 
 ## How it fits together
@@ -86,6 +86,14 @@ npx @modelcontextprotocol/inspector             # connect to http://localhost:80
 
 Both services ship with a `Dockerfile` (with `HEALTHCHECK`) and a
 `docker-compose.yml`.
+
+## AI coach status
+
+The coach code, tests and deployment are done, but our AWS account cannot
+call Bedrock yet (see [friction log #13–#14](docs/friction-log.md)). Showing
+canned lines under an "AI coach" label would mislead players, so the coach is
+switched off: the TV card only appears in builds made with `GRABIUM_COACH=1`,
+and the MCP `coach_tip` tool only appears with `GRABIUM_MCP_COACH=1`.
 
 ## Safety choices
 

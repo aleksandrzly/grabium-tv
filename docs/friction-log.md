@@ -28,6 +28,8 @@ At a glance:
 | 10 | Onboarding | Low | The SDK installer is hard to find: the link sits in body text, behind sign-in |
 | 11 | CLI | Low | `vega virtual-device start` prints `vvman` errors and a different SDK version on every run |
 | 12 | Input | Low | Back arrives as `GoBack` / `BrowserBack` / keyCode 27, and nothing documents it |
+| 13 | AWS account | High | A new-experience AWS "project" lists Bedrock models as available, but every call fails (403 / zero quotas) until "advanced features" are activated |
+| 14 | AWS account | Medium | The Anthropic use-case form on Bedrock fails with "not authorized" and points to Support instead of the real cause |
 
 ---
 
@@ -226,6 +228,56 @@ At a glance:
 - **Severity:** Low.
 - **Suggestion:** A table in the WebView docs of remote button → `key` /
   `code` / `keyCode`.
+
+## 13. Bedrock looks available in a new-experience project, but is not
+
+- **Task:** Call Claude, then Amazon Nova, on Bedrock from our AI coach.
+- **Steps:**
+  1. Signed up with the "new AWS experience" and created a project
+     (eu-north-1).
+  2. Signed in the CLI with `aws login`.
+  3. Ran `aws bedrock list-foundation-models`, which listed Claude, OpenAI
+     and Nova models.
+  4. Called Claude Opus 5 through the Anthropic SDK's Bedrock (Mantle)
+     client, and Nova 2 Lite through `converse`.
+- **Expected:** Either the calls work, or the catalog says up front that
+  this account cannot use the models.
+- **Actual:**
+  - Claude returned `403 ... is not available for this account`.
+  - Nova on-demand said to use an inference profile. The
+    `eu.amazon.nova-2-lite-v1:0` profile then returned
+    `ThrottlingException: Too many tokens per day` on the very first call.
+  - Service Quotas shows 0 for every Nova tokens-per-minute and per-day
+    quota.
+  - `get-foundation-model-availability` reports `NOT_AUTHORIZED` for every
+    model, while the region and the entitlement are `AVAILABLE`.
+  - The real cause showed up only in the console home:
+    "Service Amazon Bedrock (mantle endpoint) unavailable. Activate
+    advanced features to access this service."
+- **Severity:** High. Finding the cause took several API calls, a quota audit and a Support
+  assistant session to find the actual cause.
+- **Workaround:** None without activating advanced features (a billing
+  decision), so the coach ships with a canned fallback and switches to
+  Bedrock through one `.env` line.
+- **Suggestion:** Have the Bedrock catalog, `list-foundation-models`, and
+  the 403 / throttling errors say "not available in this AWS experience;
+  activate advanced features", with a link. A zero daily quota should not
+  surface as "too many tokens per day".
+
+## 14. The Anthropic use-case form fails with a misleading error
+
+- **Task:** Submit Anthropic's one-time use-case details in the Bedrock
+  model catalog.
+- **Steps:** Filled in company, website, industry, intended users and the
+  use case, then pressed "Submit use case details".
+- **Expected:** The form is accepted, or it explains why it can't be.
+- **Actual:** "Your account is not authorized to perform this action. Please
+  create a support case." The Support assistant then looked at suspension
+  and payment verification, and offered no recommendation. The cause was
+  the same as entry 13.
+- **Severity:** Medium.
+- **Suggestion:** Detect the new-experience restriction and say so on the
+  form, instead of sending people to Support.
 
 ---
 
