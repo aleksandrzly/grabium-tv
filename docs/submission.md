@@ -105,7 +105,7 @@ the living-room version.
 
 ### Challenges we ran into
 
-We logged all of these in a 15-entry friction log (`docs/friction-log.md`).
+We logged all of these in a 17-entry friction log (`docs/friction-log.md`).
 The biggest:
 - **Adding an RN input listener for the Menu key silently rerouted Back
   away from the WebView**, and the app backgrounded itself from every

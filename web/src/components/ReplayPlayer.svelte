@@ -13,8 +13,10 @@
   function restart() {
     if (!videoEl) return;
     ended = false;
+    // Reload rather than seek: any start offset (a seek or a #t= fragment)
+    // leaves the Vega WebView's platform decoder on a black frame.
     videoEl.load();
-    videoEl.play().catch(() => {});
+    videoEl.play().catch((err) => console.warn("[replay] play failed", err));
   }
 
   $effect(() =>

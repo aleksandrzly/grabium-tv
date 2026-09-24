@@ -1,8 +1,10 @@
 // /api/recent-wins sets has_replay from the database row, not from the file,
-// so a clip deleted on the server still looks watchable. Each clip is probed
-// with a detached <video preload="metadata"> before its Watch badge shows: a
-// media load needs no CORS and no bridge, and metadata is a few KB.
+// so a clip deleted on the server still looks watchable. Each clip is checked
+// with a HEAD request before its Watch badge shows. Not with a probe <video>:
+// on Vega each media element takes one of the few platform video decoders,
+// and with ten probes the replay player itself stayed black.
 import { url } from "./config.js";
+import { request } from "./bridge.js";
 
 export const replayUrl = (win) =>
   url(`/api/wins/${encodeURIComponent(win.win_id)}/replay?machine_id=${encodeURIComponent(win.machine_id)}`);
@@ -10,7 +12,6 @@ export const replayUrl = (win) =>
 // A clip that loaded is checked again after this long, so a deletion during
 // a long session also hides the badge.
 const RECHECK_MS = 5 * 60 * 1000;
-const PROBE_TIMEOUT_MS = 15000;
 
 /** win_id -> {ok, at}; replaced (not mutated) so $derived readers update. */
 let checked = $state({});
@@ -21,27 +22,20 @@ function record(id, ok) {
   checked = { ...checked, [id]: { ok, at: Date.now() } };
 }
 
-function probe(win) {
+async function probe(win) {
   const id = win.win_id;
   inFlight[id] = true;
-  const video = document.createElement("video");
-  video.muted = true;
-  video.preload = "metadata";
-  let timer = 0;
-  const done = (ok) => {
-    clearTimeout(timer);
-    video.onloadedmetadata = video.onerror = null;
-    // Dropping the source stops any further download.
-    video.removeAttribute("src");
-    video.load();
+  let ok = false;
+  try {
+    const reply = await request(replayUrl(win), { method: "HEAD" });
+    ok = reply.ok;
+  } catch (err) {
+    // A failed check counts as missing; the next lobby refresh tries again.
+    console.warn("[replays] check failed", err);
+  } finally {
     delete inFlight[id];
-    record(id, ok);
-  };
-  video.onloadedmetadata = () => done(true);
-  video.onerror = () => done(false);
-  // A stalled request counts as missing; the next refresh tries again.
-  timer = setTimeout(() => done(false), PROBE_TIMEOUT_MS);
-  video.src = replayUrl(win);
+  }
+  record(id, ok);
 }
 
 /** Probe every claimed replay that is unknown, failed or stale. */

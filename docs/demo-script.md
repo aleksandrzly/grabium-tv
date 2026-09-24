@@ -37,7 +37,7 @@ the best material comes first.
 | 1:25–1:35 | Quick cut of the sign-in screen (pre-recorded) | "Sign-in is a one-time email code, the same Grabium account as on the web." |
 | 1:35–2:05 | MCP Inspector: list tools, then call `list_machines` and `machine_status` ("basket ball"); show the `say` text | "For Alexa+, a read-only MCP server over Streamable HTTP answers questions like 'which machine is free?' and 'who's winning this week?'. Voice can't move a claw; that needs a player watching the camera." |
 | 2:05–2:25 | The browser at `tv.freeskillclaw.cc`, the same lobby; open a machine | "Judges without a Fire TV can try the same app in a browser." |
-| 2:25–2:45 | The GitHub repo: README, then `docs/friction-log.md` | "Everything here, the Vega app, the TV UI and the MCP server, was built during the hackathon. It's open source, with a 15-entry friction log on building for Vega." |
+| 2:25–2:45 | The GitHub repo: README, then `docs/friction-log.md` | "Everything here, the Vega app, the TV UI and the MCP server, was built during the hackathon. It's open source, with a 17-entry friction log on building for Vega." |
 | 2:45–2:50 | The lobby again, with the logo | "Grabium. Grab something real." |
 
 ## Keep in mind

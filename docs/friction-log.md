@@ -298,6 +298,40 @@ At a glance:
 
 ---
 
+## 16. The VVD WebView shows larger H.264 clips as a black frame
+
+- **Task:** Play a win replay (a plain `<video src>` MP4, H.264 Constrained
+  Baseline, yuv420p) in the Vega WebView on the Vega Virtual Device.
+- **Steps:** Raised our replay clips from 320x240 to 640x480, then encoded the
+  same clip at several sizes and put each in the player.
+- **Expected:** A 640x480 baseline clip plays; any TV decodes far more.
+- **Actual:** 320x240 (10 and 20 fps) and 400x300 play. 480x360 and 640x480
+  (at 10 or 20 fps) stay black: no error event, the logs show the platform
+  decoder being configured and nothing after. It fails silently.
+- **Severity:** High for anyone testing media on the VVD: it looks like an
+  app bug, and we spent an afternoon on seek and decoder theories first.
+- **Workaround:** Keep replay clips at 400x300 or smaller.
+- **Suggestion:** Document the VVD's decode limits, and fire `error` on the
+  `<video>` element when the decoder cannot take the stream.
+
+---
+
+## 17. Seeking a clip in the VVD WebView leaves it black
+
+- **Task:** Show only the last 10 s of a replay by starting playback late.
+- **Steps:** Set `currentTime` on `loadedmetadata`; separately, a `#t=30`
+  media fragment in `src`.
+- **Expected:** Playback starts at the offset.
+- **Actual:** A black frame in both cases (the logs show the decoder stop,
+  flush and start, then no frames). Found together with #16, so part of this
+  may be the same decoder limit.
+- **Severity:** Medium.
+- **Workaround:** Trim on the server: the edge now saves only the last 10 s
+  of a round (`REPLAY_CLIP_TAIL_SECONDS`), and the player always starts at 0.
+- **Suggestion:** Same as #16: surface decoder failures as media errors.
+
+---
+
 ## What worked well
 
 - **WebRTC in the WebView just works.** A WHEP stream from our MediaMTX

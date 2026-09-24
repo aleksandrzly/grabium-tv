@@ -9,8 +9,11 @@ export const ORIGIN = 'https://play.freeskillclaw.cc';
 export const COACH_ORIGIN = 'https://coach.freeskillclaw.cc';
 const TIMEOUT_MS = 10000;
 
-const ALLOWED: Array<{method: 'GET' | 'POST'; prefix: string}> = [
+const ALLOWED: Array<{method: 'GET' | 'HEAD' | 'POST'; prefix: string}> = [
   {method: 'GET', prefix: `${ORIGIN}/api/`},
+  // Replay clips are checked with HEAD: a probe <video> per clip held one of
+  // the few platform video decoders each, and the replay player went black.
+  {method: 'HEAD', prefix: `${ORIGIN}/api/wins/`},
   {method: 'POST', prefix: `${ORIGIN}/platform/auth/`},
   {method: 'GET', prefix: `${ORIGIN}/platform/users/me`},
   {method: 'POST', prefix: `${COACH_ORIGIN}/coach/`},
