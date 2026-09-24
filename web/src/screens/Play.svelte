@@ -102,7 +102,10 @@
     }
   });
 
-  const status = $derived(statusOf(machine));
+  // The poll only knows the machine is taken; during this player's own round
+  // (and its result) that is them, not "someone".
+  const ownRound = $derived(g.status === "controlling" || g.afterRound || g.showResult);
+  const status = $derived(ownRound ? { label: "You're playing", tone: "ok" } : statusOf(machine));
   const prize = $derived(machine?.prizes?.[0]);
   const player = $derived(machine?.session?.active_user);
 

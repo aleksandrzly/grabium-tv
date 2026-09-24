@@ -10,6 +10,11 @@ const PING_MS = 20000;
 // The Mini App re-sends a held direction every 100 ms; the edge treats the
 // stream of commands as a dead-man switch, so the TV does the same.
 const MOVE_REPEAT_MS = 100;
+// A held arrow on the Vega Virtual Device's remote can arrive as keyup/keydown
+// pairs, and stopping (H) on each keyup made the claw stutter. The stop waits
+// this long and is cancelled if the same arrow comes back; the firmware's own
+// 500 ms failsafe still stops a claw whose commands dry up.
+const RELEASE_GRACE_MS = 200;
 // The edge sends session_ended (with the result) only once the claw is home,
 // then the machine's next status (ready / busy) a moment later. The result
 // card is held this long so the player actually sees it.
@@ -79,6 +84,8 @@ export function createGame(machineId, initialMode = "") {
   // Timer handles are bookkeeping, not UI state, so they stay non-reactive.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const repeatTimers = new Map();
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
+  const releaseTimers = new Map();
 
   function send(obj) {
     if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
@@ -87,6 +94,8 @@ export function createGame(machineId, initialMode = "") {
   function stopAllMoves() {
     for (const timer of repeatTimers.values()) clearInterval(timer);
     repeatTimers.clear();
+    for (const timer of releaseTimers.values()) clearTimeout(timer);
+    releaseTimers.clear();
     stopMotor();
   }
 
@@ -116,6 +125,11 @@ export function createGame(machineId, initialMode = "") {
     if (Number.isFinite(Number(data.position))) state.queuePosition = Number(data.position);
 
     if (!data.status) return;
+    // The edge drops a command that arrives under 90 ms after the last one
+    // and says rate_limited. Held arrows repeat every 100 ms, and the tunnel
+    // can deliver two close together, so this is routine jitter, not a lost
+    // connection: keep the current status (the Mini App does the same).
+    if (data.status === "rate_limited") return;
     if (data.status === "prize_win") {
       state.prize = data;
       return;
@@ -229,6 +243,13 @@ export function createGame(machineId, initialMode = "") {
       }
     },
     press(direction) {
+      // The same arrow again inside the grace window: it never really let go.
+      const pendingStop = releaseTimers.get(direction);
+      if (pendingStop) {
+        clearTimeout(pendingStop);
+        releaseTimers.delete(direction);
+        if (repeatTimers.has(direction)) return;
+      }
       const cmd = DIRECTIONS[direction];
       if (!cmd || !movable() || repeatTimers.has(direction)) return;
       const wire = mapDirection(cmd, state.inverted);
@@ -240,6 +261,11 @@ export function createGame(machineId, initialMode = "") {
       );
     },
     release(direction) {
+      if (!repeatTimers.has(direction) || releaseTimers.has(direction)) return;
+      releaseTimers.set(direction, setTimeout(() => this.stop(direction), RELEASE_GRACE_MS));
+    },
+    stop(direction) {
+      releaseTimers.delete(direction);
       const timer = repeatTimers.get(direction);
       if (!timer) return;
       clearInterval(timer);
