@@ -14,6 +14,9 @@ const MOVE_REPEAT_MS = 100;
 // then the machine's next status (ready / busy) a moment later. The result
 // card is held this long so the player actually sees it.
 const RESULT_HOLD_MS = 8000;
+// A start takes a round trip to the platform; a second OK in that window is
+// refused by the edge (platform_start_in_progress), so it is not sent.
+const START_GUARD_MS = 4000;
 const RECONNECT_MAX_MS = 15000;
 const DIRECTIONS = { up: "U", down: "D", left: "L", right: "R" };
 
@@ -72,6 +75,7 @@ export function createGame(machineId, initialMode = "") {
   let reconnectDelay = 1000;
   let reconnectTimer = null;
   let resultTimer = null;
+  let startSentAt = 0;
   // Timer handles are bookkeeping, not UI state, so they stay non-reactive.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const repeatTimers = new Map();
@@ -93,6 +97,7 @@ export function createGame(machineId, initialMode = "") {
 
   function apply(data) {
     if (data.event === "start.refused" || data.type === "start.refused") {
+      startSentAt = 0;
       state.refusal = data.reason || "refused";
       return;
     }
@@ -116,6 +121,7 @@ export function createGame(machineId, initialMode = "") {
       return;
     }
     if (data.status === "controlling" && state.status !== "controlling") {
+      startSentAt = 0;
       state.refusal = "";
       state.result = "";
       state.prize = null;
@@ -217,6 +223,8 @@ export function createGame(machineId, initialMode = "") {
       } else if (s === "busy" && state.canQueue) {
         send({ action: "join_queue" });
       } else if (s === "ready" || s === "session_ended" || s === "not_ready") {
+        if (Date.now() - startSentAt < START_GUARD_MS) return;
+        startSentAt = Date.now();
         send({ action: "start", machine_id: machineId, mode: state.mode });
       }
     },

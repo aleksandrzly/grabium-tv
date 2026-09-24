@@ -6,10 +6,18 @@ const REFUSALS = {
   guest_play_disabled: "Playing from the TV is switched off on this machine.",
   classic_cooldown_active: "Short cooldown. Try again in a moment.",
   user_banned: "This account can't play right now.",
-  machine_mismatch: "Reconnecting to the machine. Try again."
+  machine_mismatch: "Reconnecting to the machine. Try again.",
+  // The edge is still authorising a start (a second press, or another
+  // player a moment earlier); it clears in a few seconds.
+  platform_start_in_progress: "A round is starting. Try again in a few seconds."
 };
 
-export const refusalText = (reason) => REFUSALS[reason] || `Can't start right now (${reason}).`;
+// Unknown reasons are logged, not shown: a raw code means nothing to a player.
+export function refusalText(reason) {
+  if (REFUSALS[reason]) return REFUSALS[reason];
+  console.warn("[play] start refused:", reason);
+  return "Can't start right now. Try again in a moment.";
+}
 
 /**
  * @param {object} s game state
