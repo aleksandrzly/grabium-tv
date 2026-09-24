@@ -4,6 +4,7 @@
   import { listenRemote } from "../lib/remote.js";
   import { cropStyle, statusOf } from "../lib/format.js";
   import WinsTicker from "../components/WinsTicker.svelte";
+  import ReplayPlayer from "../components/ReplayPlayer.svelte";
   import WalletBadge from "../components/WalletBadge.svelte";
   import SidePanel from "../components/SidePanel.svelte";
   import Wordmark from "../components/Wordmark.svelte";
@@ -27,6 +28,21 @@
   // Focus follows the machine id, not an index, so a poll that reorders or
   // drops a machine never moves the highlight onto a different cabinet.
   const focusIndex = $derived(Math.max(0, machines.findIndex((m) => m.id === focusId)));
+
+  // Replay-row state
+  let rowFocused = $state(false);
+  let rowFocusIndex = $state(0);
+  /** @type {object | null} */
+  let playerWin = $state(null);
+  const replayableWins = $derived(wins.filter((w) => w.has_replay));
+
+  // Guard: if replayable wins change, clamp index and clear row focus if empty.
+  $effect(() => {
+    if (replayableWins.length === 0) {
+      rowFocused = false;
+    }
+    rowFocusIndex = Math.min(rowFocusIndex, Math.max(0, replayableWins.length - 1));
+  });
 
   $effect(() => {
     const abort = new AbortController();
@@ -71,10 +87,23 @@
   $effect(() =>
     listenRemote((action, { first }) => {
       if (action === "back") {
+        // If the ticker row has focus, Back returns to the cards — must NOT fall
+        // through to exitApp().
+        if (first && rowFocused) { rowFocused = false; return; }
         if (first && Date.now() - mountedAt > 600) exitApp();
         return;
       }
       if (!machines.length) return;
+      // Row-focus navigation (handled before card navigation).
+      if (action === "down" && !rowFocused && replayableWins.length > 0) { rowFocused = true; return; }
+      if (action === "up" && rowFocused) { rowFocused = false; return; }
+      if (rowFocused) {
+        if (action === "left") rowFocusIndex = Math.max(0, rowFocusIndex - 1);
+        if (action === "right") rowFocusIndex = Math.min(replayableWins.length - 1, rowFocusIndex + 1);
+        if (action === "ok" && first) playerWin = replayableWins[rowFocusIndex];
+        return;
+      }
+      // Card navigation (unchanged).
       if (action === "left") focusId = machines[Math.max(0, focusIndex - 1)].id;
       if (action === "right") focusId = machines[Math.min(machines.length - 1, focusIndex + 1)].id;
       if (action === "ok" && first) onOpen(machines[focusIndex]);
@@ -106,8 +135,8 @@
     {#each machines as m, i (m.id)}
       {@const s = statusOf(m)}
       {@const prize = m.prizes?.[0]}
-      <article class="card" style="--i: {i}" class:focused={m.id === focusId}
-        aria-selected={m.id === focusId}>
+      <article class="card" style="--i: {i}" class:focused={m.id === focusId && !rowFocused}
+        aria-selected={m.id === focusId && !rowFocused}>
         <div class="preview">
           <img src={previewUrl(m.id, tick)} alt="" style={cropStyle(m.camera_crop)} />
           <span class="live"><i></i>LIVE</span>
@@ -134,9 +163,13 @@
   </div>
 
   {#if wins.length}
-    <WinsTicker {wins} />
+    <WinsTicker {wins} focused={rowFocused} focusIndex={rowFocusIndex} />
   {:else}
     <div></div>
+  {/if}
+
+  {#if playerWin}
+    <ReplayPlayer win={playerWin} onclose={() => { playerWin = null; }} />
   {/if}
 
   <footer class="hint">

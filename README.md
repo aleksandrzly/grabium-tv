@@ -5,11 +5,13 @@ over WebRTC, and this app turns a Fire TV into the controller: the D-pad
 steers the claw and OK drops it.
 
 Built for the Amazon Developer Hackathon 2026 (Fire TV track, plus the
-Alexa+ MCP and Open Source extras).
+Alexa+ MCP, Open Source and AWS Builder extras). The win replay viewer was
+built with **Kiro Crew** from the spec in
+[`web/.kiro/specs/replay-viewer`](web/.kiro/specs/replay-viewer).
 
 | Part | Folder | What it is |
 | :--- | :--- | :--- |
-| TV app | [`web/`](web) | Svelte 5 UI for a 10-foot screen: lobby, live stream, remote play, sign-in, settings |
+| TV app | [`web/`](web) | Svelte 5 UI for a 10-foot screen: lobby, live stream, remote play, win replays, sign-in, settings |
 | Vega OS shell | [`vega/`](vega) | React Native app from Amazon's `vegaWebview` template: WebView, HTTP bridge, remote key routing |
 | AI coach | [`ai-coach/`](ai-coach) | Claude on **Amazon Bedrock** looks at the camera frame and gives a one-line aiming tip and a round recap. Off by default (see below) |
 | Alexa+ MCP server | [`mcp-server/`](mcp-server) | Read-only MCP server (Streamable HTTP, protocol 2025-11-25+): machine status, recent grabs, weekly board, how to play |

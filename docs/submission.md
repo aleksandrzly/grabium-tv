@@ -19,9 +19,7 @@ machine status by voice.
 ## Tracks and mini challenges
 
 - **Primary track:** Fire TV (Vega OS)
-- **Mini challenge:** Open Source
-- *(AWS Builder only if Bedrock access or Kiro work is added before the
-  deadline; see the AI coach note below.)*
+- **Mini challenges:** Open Source, AWS Builder (Kiro Crew)
 
 ## Links
 
@@ -64,6 +62,9 @@ the living-room version.
   "what's on Basket Ball?", "who's winning this week?" and "how do I play Free
   Drop?". Every answer carries a ready-to-speak `say` line. Voice cannot move
   a claw: a round needs a signed-in player who is watching the camera.
+- **Win replays.** In the lobby, Down moves to the Recent grabs row; any
+  grab with a clip shows a play badge, and OK plays the real camera replay
+  of that grab.
 - **Browser build.** Judges without a Fire TV can play the same UI at
   tv.freeskillclaw.cc: arrows move, Enter is OK, Esc is Back.
 
@@ -89,6 +90,13 @@ the living-room version.
   2025-11-25, and 2026-07-28 when the client offers it), stateless, every
   tool annotated `readOnlyHint`. It runs in Docker behind a Cloudflare
   tunnel.
+- **Replay viewer, built with Kiro Crew:** we wrote the feature request,
+  Kiro generated a spec (`.kiro/specs/replay-viewer/`: requirements,
+  design and tasks). We reviewed it and changed six points, including
+  moving the ticker with transforms instead of `scrollIntoView` and
+  making Back return to the cards instead of exiting. Kiro then
+  implemented the tasks, and a review caught one bug (a paused CSS
+  animation overriding the inline transform), which Kiro fixed.
 - **AI coach:** a small aiohttp service that sends the current camera frame
   to Claude on Amazon Bedrock (Anthropic SDK, Mantle client) for a one-line
   aiming tip and a round recap. Answers are shared per machine for a few
@@ -233,6 +241,18 @@ other one.
   renewable for 90 days.
 - *Needs work:* profiles from `aws login` need `botocore[crt]` in Python
   apps, and the error only says so at call time.
+
+**Kiro Crew**
+- *Used for:* the win replay viewer, from spec to implementation, in our
+  Svelte TV app.
+- *Worked well:* the spec-first flow (requirements, design, tasks) made it
+  easy to review the plan before any code was written, and it followed our
+  existing patterns (runes, theme variables, the remote-key handler).
+- *Needs work:* the first design proposed `scrollIntoView` on a
+  transform-animated list, and pausing a CSS animation to apply an inline
+  transform. Both were caught in review, not by the tool.
+- *Onboarding:* quick: GitHub sign-in, no AWS account needed.
+- *Build with it again?* Yes, for well-scoped UI features.
 
 **Amazon Bedrock**
 - *Used for:* the AI coach (Claude, vision, through the Anthropic SDK's

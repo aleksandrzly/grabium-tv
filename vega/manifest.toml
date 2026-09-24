@@ -4,6 +4,8 @@ schema-version = 1
 title = "Grabium"
 version = "0.1.0"
 id = "com.grabium.tv"
+# Launcher tile and Settings > Applications icon (512x512 PNG in assets/image).
+icon = "@image/grabium-icon.png"
 
 [os.version]
 min = "1.2"
