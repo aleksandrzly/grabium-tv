@@ -60,13 +60,15 @@
         email = value;
         step = "code";
       } else {
-        const value = code.trim();
-        if (!value) throw new Error("Enter the code from the email.");
+        const value = code.replace(/\D/g, "");
+        if (value.length !== 6) throw new Error("The code has 6 digits. Check it and try again.");
         await verifyCode(email, value);
         onDone();
       }
     } catch (err) {
-      error = err.message || "Something went wrong. Try again.";
+      // A network failure through fetch surfaces as a TypeError with a
+      // browser-specific message; never show raw internals to a player.
+      error = err instanceof TypeError ? "No connection. Check the network and try again." : err.message || "Sign-in didn't work. Please try again.";
     } finally {
       busy = false;
     }
@@ -80,6 +82,8 @@
       <p class="hint">We'll email you a one-time code. Same account as the Grabium app.</p>
     {:else}
       <p class="hint">Enter the code we sent to <strong>{email}</strong>.</p>
+      <!-- Our sending domain is new, so some inboxes file the code as spam. -->
+      <p class="hint spam">Not there? Check your <strong>Spam</strong> folder. The code is in the subject line.</p>
     {/if}
 
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -103,6 +107,8 @@
           bind:this={input}
           bind:value={code}
           inputmode="numeric"
+          maxlength="6"
+          pattern="[0-9]*"
           autocomplete="one-time-code"
           enterkeyhint="go"
           disabled={busy}
@@ -164,4 +170,5 @@
   }
   button:disabled { opacity: 0.6; }
   .error { color: var(--busy); }
+  .spam { margin-top: 6px; font-size: 22px; }
 </style>

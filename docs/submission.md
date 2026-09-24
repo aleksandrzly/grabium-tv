@@ -169,7 +169,9 @@ Docker · nginx · Cloudflare Tunnel
    `vega device install-app -p grabiumtv_<arch>.vpkg` and
    `vega device launch-app -a com.grabium.tv.main`.
 3. **To play:** open a machine and press OK. Sign in with any email; the
-   code arrives by email. New accounts get 10 free credits. The machines
+   code arrives by email (our sending domain is new, so please check your
+   **Spam** folder; the code is in the subject line). New accounts get 10
+   free credits. The machines
    are real cabinets, so a round moves a real claw you watch live.
 4. **MCP:** in MCP Inspector, connect with Streamable HTTP to
    https://mcp.freeskillclaw.cc/mcp and run `list_machines`.

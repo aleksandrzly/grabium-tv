@@ -26,7 +26,7 @@ Alexa+ MCP and Open Source extras).
   on Intel) and install it from any folder:
   `vega device install-app -p grabiumtv_<arch>.vpkg && vega device launch-app -a com.grabium.tv.main`.
 - **To play:** open a machine, press OK and sign in with any email; the code
-  arrives by email. New accounts get **10 free credits** (one round each)
+  arrives by email (check Spam: the sending domain is new). New accounts get **10 free credits** (one round each)
   plus free daily Classic plays. The machines are real cabinets, so a round
   moves a real claw you watch live.
 

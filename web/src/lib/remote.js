@@ -23,8 +23,10 @@ const KEYMAP = {
   M: "menu"
 };
 
-// Keys typed into a text field belong to the field, not to the remote.
-const typing = (event) => /^(INPUT|TEXTAREA|SELECT)$/.test(event.target?.tagName || "");
+// Keys aimed at a focused form control belong to it, not to the remote:
+// typing in a field, and OK/Enter on a focused button (which the browser
+// turns into a click only if nobody calls preventDefault on it).
+const typing = (event) => /^(INPUT|TEXTAREA|SELECT|BUTTON)$/.test(event.target?.tagName || "");
 
 // Keys a listener consumed stay consumed until they are released. Without
 // this, the remote's auto-repeat keydowns for the same press land on the

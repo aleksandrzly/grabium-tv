@@ -37,6 +37,27 @@ export const account = $state({ token: load(TOKEN_KEY), email: load(EMAIL_KEY) }
 export const signedIn = () => Boolean(account.token);
 export const hasRefresh = () => Boolean(load(REFRESH_KEY));
 
+// Player-facing text for the platform's sign-in errors
+// (platform_service/api.py request_email_code / verify_email_code).
+const AUTH_ERRORS = {
+  invalid_code: "The code has 6 digits. Check it and try again.",
+  bad_otp: "That code isn't right. Check the latest email and try again.",
+  otp_expired: "This code has expired. Press Back and ask for a new one.",
+  otp_attempts_exhausted: "Too many wrong codes. Press Back and ask for a new one.",
+  otp_already_used: "This code was already used. Press Back and ask for a new one.",
+  email_not_configured: "We can't send emails right now. Please try again later."
+};
+
+function authError(reply, data) {
+  const reason = String(data.error || data.message || "");
+  if (AUTH_ERRORS[reason]) return new Error(AUTH_ERRORS[reason]);
+  if (reply.status === 429) return new Error("Too many tries. Please wait a minute and try again.");
+  if (/email/i.test(reason)) return new Error("Enter a valid email address.");
+  if (reply.status === 0) return new Error("No connection. Check the network and try again.");
+  if (reply.status >= 500) return new Error("Something went wrong on our side. Please try again.");
+  return new Error("Sign-in didn't work. Please try again.");
+}
+
 function parse(reply) {
   try {
     return JSON.parse(reply.body || "{}");
@@ -61,12 +82,12 @@ async function post(path, body, token = "") {
 
 export async function requestCode(email) {
   const { reply, data } = await post("/auth/email/request-code", { email });
-  if (!reply.ok) throw new Error(data.message || data.error || `HTTP ${reply.status}`);
+  if (!reply.ok) throw authError(reply, data);
 }
 
 export async function verifyCode(email, code) {
   const { reply, data } = await post("/auth/email/verify-code", { email, code });
-  if (!reply.ok || !data.access_token) throw new Error(data.message || data.error || `HTTP ${reply.status}`);
+  if (!reply.ok || !data.access_token) throw authError(reply, data);
   account.token = data.access_token;
   account.email = data.user?.email || email;
   save(TOKEN_KEY, account.token);
