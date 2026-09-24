@@ -10,6 +10,10 @@ const PING_MS = 20000;
 // The Mini App re-sends a held direction every 100 ms; the edge treats the
 // stream of commands as a dead-man switch, so the TV does the same.
 const MOVE_REPEAT_MS = 100;
+// The edge sends session_ended (with the result) only once the claw is home,
+// then the machine's next status (ready / busy) a moment later. The result
+// card is held this long so the player actually sees it.
+const RESULT_HOLD_MS = 8000;
 const RECONNECT_MAX_MS = 15000;
 const DIRECTIONS = { up: "U", down: "D", left: "L", right: "R" };
 
@@ -53,6 +57,8 @@ export function createGame(machineId, initialMode = "") {
     queuePosition: null,
     queueId: "",
     result: "", // WIN | LOSE after session_ended
+    showResult: false, // result card on screen (see RESULT_HOLD_MS)
+    afterRound: false, // this player's claw is heading home; the result is pending
     prize: null,
     refusal: "",
     inverted: false,
@@ -65,6 +71,7 @@ export function createGame(machineId, initialMode = "") {
   let pingTimer = null;
   let reconnectDelay = 1000;
   let reconnectTimer = null;
+  let resultTimer = null;
   // Timer handles are bookkeeping, not UI state, so they stay non-reactive.
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const repeatTimers = new Map();
@@ -77,6 +84,11 @@ export function createGame(machineId, initialMode = "") {
     for (const timer of repeatTimers.values()) clearInterval(timer);
     repeatTimers.clear();
     stopMotor();
+  }
+
+  function hideResult() {
+    clearTimeout(resultTimer);
+    state.showResult = false;
   }
 
   function apply(data) {
@@ -108,10 +120,18 @@ export function createGame(machineId, initialMode = "") {
       state.result = "";
       state.prize = null;
       state.dropSent = false;
+      hideResult();
+    }
+    if (data.status === "returning_home" && (state.status === "controlling" || state.afterRound)) {
+      state.afterRound = true;
     }
     if (data.status === "session_ended") {
       stopAllMoves();
       state.result = data.result || "LOSE";
+      state.afterRound = false;
+      state.showResult = true;
+      clearTimeout(resultTimer);
+      resultTimer = setTimeout(hideResult, RESULT_HOLD_MS);
     }
     if (data.status !== "controlling") stopAllMoves();
     // queue_update is a refresh of the same "in line" state.
@@ -189,6 +209,7 @@ export function createGame(machineId, initialMode = "") {
         return;
       }
       state.refusal = "";
+      hideResult();
       const wantsToPlay = ["ready", "busy", "not_ready", "session_ended", "turn_invited"].includes(s);
       if (wantsToPlay && !state.signedIn) return "sign_in";
       if (s === "turn_invited" && state.queueId) {
@@ -226,6 +247,7 @@ export function createGame(machineId, initialMode = "") {
     },
     close() {
       closed = true;
+      clearTimeout(resultTimer);
       stopAllMoves();
       clearInterval(pingTimer);
       clearTimeout(reconnectTimer);

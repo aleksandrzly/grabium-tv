@@ -119,7 +119,7 @@
 <main>
   <header>
     <div class="brand">
-    <h1 class="logo"><span class="mark"><img src={mark} alt="" /></span><Wordmark height={100} /></h1>
+    <h1 class="logo"><span class="mark"><img src={mark} alt="" /></span><Wordmark height={88} /></h1>
     <p>Real claw machines, live. Pick one and play from your couch.</p>
     {#if !economy.prizesShip}
       <p class="arcade"><strong>Arcade mode</strong> · grabs count on the weekly board, no prizes are shipped</p>
@@ -217,8 +217,8 @@
   }
   .mark {
     display: block;
-    width: 108px;
-    height: 108px;
+    width: 92px;
+    height: 92px;
     overflow: hidden;
     border-radius: 26px;
     background: #070717;
@@ -243,11 +243,11 @@
     50% { transform: translate3d(0, -6px, 0) rotate(-2deg); }
   }
   @media (prefers-reduced-motion: reduce) { .mark { animation: none; } }
-  header p { margin: 4px 0 0; color: var(--muted); font-size: 32px; }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: 30px; }
   header .arcade {
     display: inline-block;
-    margin-top: 16px;
-    padding: 8px 18px;
+    margin-top: 12px;
+    padding: 6px 18px;
     border-radius: 999px;
     background: rgba(250, 204, 21, 0.1);
     box-shadow: inset 0 0 0 1px rgba(250, 204, 21, 0.35);

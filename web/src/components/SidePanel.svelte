@@ -79,10 +79,10 @@
   aside {
     display: grid;
     align-content: start;
-    gap: 24px;
+    gap: 16px;
   }
   .card {
-    padding: 24px 26px;
+    padding: 18px 24px;
     border-radius: var(--radius);
     background: var(--surface);
     box-shadow: inset 0 0 0 1px var(--line), 0 18px 40px rgba(0, 0, 0, 0.3);
@@ -90,8 +90,8 @@
     animation-delay: calc(200ms + var(--i) * 120ms);
   }
   h3 {
-    margin: 0 0 16px;
-    font-size: 22px;
+    margin: 0 0 10px;
+    font-size: 20px;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -104,13 +104,13 @@
     grid-template-columns: 44px 1fr auto;
     align-items: center;
     gap: 12px;
-    padding: 10px 12px;
+    padding: 6px 12px;
     border-radius: 14px;
     overflow: hidden;
     animation: rise 480ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
     animation-delay: calc(350ms + var(--i) * 90ms);
   }
-  .board li + li { margin-top: 6px; }
+  .board li + li { margin-top: 4px; }
   .medal { font-size: 30px; text-align: center; }
   .name { font-size: 28px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .grabs { color: var(--muted); font-size: 22px; white-space: nowrap; }
@@ -126,7 +126,7 @@
     animation: shine 4.5s ease-in-out 1.2s infinite;
     pointer-events: none;
   }
-  .challenge { margin-top: 20px; }
+  .challenge { margin-top: 12px; }
   .row { display: flex; justify-content: space-between; gap: 12px; font-size: 22px; }
   .row strong { color: var(--accent); }
   .bar {
@@ -144,8 +144,8 @@
     transition: transform 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   .small { margin: 8px 0 0; font-size: 20px; }
-  .steps { display: grid; gap: 14px; }
-  .steps li { display: grid; grid-template-columns: 108px 1fr; align-items: center; gap: 14px; font-size: 24px; }
+  .steps { display: grid; gap: 10px; }
+  .steps li { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 14px; font-size: 22px; line-height: 1.25; }
   .key {
     justify-self: start;
     padding: 6px 12px;

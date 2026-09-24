@@ -17,6 +17,10 @@ export const refusalText = (reason) => REFUSALS[reason] || `Can't start right no
  * @returns {{title: string, subtitle?: string, keys: string[]}}
  */
 export function actionCopy(s, econ = {}) {
+  if (s.showResult) return resultCopy(s, econ);
+  if (s.afterRound && s.status === "returning_home") {
+    return { title: "Checking your grab", subtitle: "The claw is heading home.", keys: [] };
+  }
   switch (s.status) {
     case "connecting":
       return { title: "Connecting…", keys: [] };
@@ -42,13 +46,7 @@ export function actionCopy(s, econ = {}) {
       if (s.dropSent) return { title: "Dropping…", keys: [] };
       return { title: "Your round", keys: ["◀▲▼▶|Hold to move", `${OK}|Drop`] };
     case "session_ended":
-      if (s.result === "WIN") {
-        // Arcade wording mirrors the Mini App (resultWinTitleArcade/MsgArcade).
-        return econ.prizesShip
-          ? { title: "You won!", keys: [`${OK}|Play again`] }
-          : { title: "Great grab!", subtitle: "It counts on the weekly board.", keys: [`${OK}|Play again`] };
-      }
-      return { title: econ.prizesShip ? "No prize this time" : "So close!", keys: [`${OK}|Play again`] };
+      return resultCopy(s, econ);
     case "maintenance":
       return { title: "Machine is taking a break", keys: [] };
     case "unauthorized":
@@ -57,4 +55,21 @@ export function actionCopy(s, econ = {}) {
     default:
       return { title: "", keys: [] };
   }
+}
+
+// The machine may already be ready again (or taken) while the card shows, so
+// the key follows the live status rather than always promising "Play again".
+function resultCopy(s, econ) {
+  const again = s.result === "WIN" ? "Play again" : "Try again";
+  const keys =
+    s.status === "busy" ? (s.canQueue ? [`${OK}|Get in line`] : [])
+    : s.status === "maintenance" ? []
+    : [`${OK}|${again}`];
+  if (s.result === "WIN") {
+    // Arcade wording mirrors the Mini App (resultWinTitleArcade/MsgArcade).
+    return econ.prizesShip
+      ? { title: "You won!", keys }
+      : { title: "Great grab!", subtitle: "It counts on the weekly board.", keys };
+  }
+  return { title: econ.prizesShip ? "No prize this time" : "So close!", subtitle: "Aim for the middle of a toy.", keys };
 }

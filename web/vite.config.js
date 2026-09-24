@@ -12,6 +12,7 @@ const { version } = JSON.parse(readFileSync(new URL("./package.json", import.met
 // served next to a same-origin proxy of the edge, so every URL is relative.
 const WEB_TARGET = process.env.GRABIUM_TARGET === "web";
 const ORIGIN = WEB_TARGET ? "" : process.env.GRABIUM_ORIGIN || "https://play.freeskillclaw.cc";
+const EDGE = ORIGIN || process.env.GRABIUM_ORIGIN || "https://play.freeskillclaw.cc";
 // Must match COACH_ORIGIN in FireTv/vega/src/bridge.ts (the bridge allowlist).
 const COACH_ORIGIN = process.env.GRABIUM_COACH_ORIGIN || "https://coach.freeskillclaw.cc";
 // Off until the coach runs on real Bedrock: canned lines must not be shown
@@ -33,13 +34,16 @@ export default defineConfig({
     emptyOutDir: WEB_TARGET,
     target: "chrome120"
   },
+  // The web target has no ORIGIN (it is same-origin), so its dev server still
+  // needs a real edge to proxy to.
   server: {
     // In the desktop browser the dev server proxies the edge so /api is
     // same-origin; the TV build talks to ORIGIN directly.
     proxy: {
-      "/api": { target: ORIGIN, changeOrigin: true },
-      "/cam": { target: ORIGIN, changeOrigin: true },
-      "/ws": { target: ORIGIN.replace(/^http/, "ws"), ws: true, changeOrigin: true }
+      "/api": { target: EDGE, changeOrigin: true },
+      "/cam": { target: EDGE, changeOrigin: true },
+      "/platform": { target: EDGE, changeOrigin: true },
+      "/ws": { target: EDGE.replace(/^http/, "ws"), ws: true, changeOrigin: true }
     }
   }
 });
