@@ -22,7 +22,7 @@ export function refusalText(reason) {
 /**
  * @param {object} s game state
  * @param {{prizesShip?: boolean}} [econ] arcade (no shipped prizes) unless prizesShip
- * @returns {{title: string, subtitle?: string, keys: string[]}}
+ * @returns {{title: string, subtitle?: string, keys: string[], waiting?: boolean}}
  */
 export function actionCopy(s, econ = {}) {
   if (s.showResult) return resultCopy(s, econ);
@@ -61,7 +61,9 @@ export function actionCopy(s, econ = {}) {
     case "rate_limited":
       return { title: "Can't connect to play right now", keys: [] };
     default:
-      return { title: "", keys: [] };
+      // A status this screen has no words for (the edge checking the claw
+      // after power-up, a cooldown): say so rather than show an empty card.
+      return { title: "Checking the machine", keys: [], waiting: true };
   }
 }
 

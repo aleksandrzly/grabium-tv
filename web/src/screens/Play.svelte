@@ -32,7 +32,7 @@
   const mood = $derived(
     g.showResult
       ? g.result === "WIN" ? "win" : "lose"
-      : WAITING.includes(g.status) ? "wait"
+      : WAITING.includes(g.status) || action.waiting ? "wait"
       : g.status === "ready" || g.status === "turn_invited" ? "ready" : ""
   );
   const CONFETTI = Array.from({ length: 28 }, (_, i) => ({
