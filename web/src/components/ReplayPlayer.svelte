@@ -1,5 +1,5 @@
 <script>
-  import { url } from "../lib/config.js";
+  import { markReplayMissing, replayUrl } from "../lib/replays.svelte.js";
   import { timeAgo } from "../lib/format.js";
   import { listenRemote } from "../lib/remote.js";
 
@@ -42,12 +42,12 @@
       <span class="badge">▶ REPLAY</span>
       <video
         bind:this={videoEl}
-        src={url(`/api/wins/${win.win_id}/replay?machine_id=${win.machine_id}`)}
+        src={replayUrl(win)}
         autoplay
         muted
         playsinline
         onended={() => (ended = true)}
-        onerror={() => (failed = true)}
+        onerror={() => { failed = true; markReplayMissing(win); }}
       ></video>
       </div>
     {/if}

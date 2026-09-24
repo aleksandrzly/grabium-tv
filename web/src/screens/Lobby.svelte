@@ -15,6 +15,7 @@
   import { economy, modeInfo } from "../lib/economy.svelte.js";
   import { exitApp } from "../lib/bridge.js";
   import { account } from "../lib/platform.svelte.js";
+  import { checkReplays, replayReady } from "../lib/replays.svelte.js";
 
   let { onOpen, initialFocusId = null } = $props();
 
@@ -34,7 +35,10 @@
   let rowFocusIndex = $state(0);
   /** @type {object | null} */
   let playerWin = $state(null);
-  const replayableWins = $derived(wins.filter((w) => w.has_replay));
+  // has_replay only says the database has a path; show Watch once the file
+  // itself has answered (lib/replays.svelte.js).
+  const shownWins = $derived(wins.map((w) => ({ ...w, has_replay: replayReady(w) })));
+  const replayableWins = $derived(shownWins.filter((w) => w.has_replay));
 
   // Guard: if replayable wins change, clamp index and clear row focus if empty.
   $effect(() => {
@@ -61,7 +65,8 @@
     }
     async function refreshWins() {
       try {
-        wins = (await fetchRecentWins(abort.signal)).slice(0, 12);
+        wins = (await fetchRecentWins(abort.signal)).slice(0, 10);
+        checkReplays(wins);
       } catch (err) {
         console.warn("[lobby] recent wins", err);
       }
@@ -163,7 +168,7 @@
   </div>
 
   {#if wins.length}
-    <WinsTicker {wins} focused={rowFocused} focusIndex={rowFocusIndex} />
+    <WinsTicker wins={shownWins} focused={rowFocused} focusIndex={rowFocusIndex} />
   {:else}
     <div></div>
   {/if}
