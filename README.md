@@ -23,7 +23,8 @@ Alexa+ MCP and Open Source extras).
 - **On a Fire TV / Vega device or the Vega Virtual Device:** download the
   `.vpkg` from [Releases](../../releases) (`aarch64` for the Virtual Device on
   Apple Silicon, `armv7` for Fire TV sticks, `x86_64` for the Virtual Device
-  on Intel) and run `vega run-app grabiumtv_<arch>.vpkg`.
+  on Intel) and install it from any folder:
+  `vega device install-app -p grabiumtv_<arch>.vpkg && vega device launch-app -a com.grabium.tv.main`.
 - **To play:** open a machine, press OK and sign in with any email; the code
   arrives by email. New accounts get **10 free credits** (one round each)
   plus free daily Classic plays. The machines are real cabinets, so a round

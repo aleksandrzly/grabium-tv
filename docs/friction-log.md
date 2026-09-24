@@ -30,6 +30,7 @@ At a glance:
 | 12 | Input | Low | Back arrives as `GoBack` / `BrowserBack` / keyCode 27, and nothing documents it |
 | 13 | AWS account | High | A new-experience AWS "project" lists Bedrock models as available, but every call fails (403 / zero quotas) until "advanced features" are activated |
 | 14 | AWS account | Medium | The Anthropic use-case form on Bedrock fails with "not authorized" and points to Support instead of the real cause |
+| 15 | CLI | Low | `vega run-app <file>.vpkg` fails outside a project folder ("Couldn't find manifest.toml") |
 
 ---
 
@@ -278,6 +279,22 @@ At a glance:
 - **Severity:** Medium.
 - **Suggestion:** Detect the new-experience restriction and say so on the
   form, instead of sending people to Support.
+
+## 15. `vega run-app` with a package path needs a project folder
+
+- **Task:** Tell testers how to install our released `.vpkg` on their Vega
+  Virtual Device.
+- **Steps:** Downloaded `grabiumtv_aarch64.vpkg` into an empty folder and
+  ran `vega run-app grabiumtv_aarch64.vpkg`.
+- **Expected:** Install and launch, since the package path is given.
+- **Actual:** "Couldn't find manifest.toml file from /tmp/grabium-release".
+  The same command works from inside the project.
+- **Severity:** Low, but it breaks the obvious instructions for anyone
+  installing a released package.
+- **Workaround:** `vega device install-app -p <file>.vpkg`, then
+  `vega device launch-app -a <app id>`.
+- **Suggestion:** When given a `.vpkg`, read the app id from the package
+  itself.
 
 ---
 
